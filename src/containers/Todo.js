@@ -107,9 +107,7 @@ class Todo extends Component {
 
   onChangeEdit = (event, index) => {
     const updateChange = [...this.state.result];
-    console.log(updateChange);
     const updateChangeElement = { ...updateChange[index] };
-    console.log(updateChangeElement);
     if (event.target.name === "Field1") {
       updateChangeElement.Block = event.target.value;
     }
@@ -122,10 +120,7 @@ class Todo extends Component {
 
     updateChange[index] = updateChangeElement;
 
-    console.log(updateChange[index]);
-
     this.setState({ result: updateChange });
-    console.log(this.state.result);
   };
 
   render() {
