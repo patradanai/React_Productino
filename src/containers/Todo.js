@@ -1,13 +1,8 @@
 import React, { Component } from "react";
-import { Button, Confirm } from "semantic-ui-react";
-import {
-  getList,
-  addList,
-  updateList,
-  deleteList
-} from "../../src/axios/BrtList";
-import List from "../../src/components/BRT/List";
+import { Confirm, Pagination } from "semantic-ui-react";
+import { getList, addList, deleteList } from "../../src/axios/BrtList";
 import Modal from "../../src/components/Modal/Modal";
+import "../containers/Todo.css";
 
 class Todo extends Component {
   constructor(props) {
@@ -21,22 +16,35 @@ class Todo extends Component {
       field1: "",
       field2: "",
       field3: "",
-      setField: []
+      setField: [],
+      itemperPage: 10,
+      page: 1,
+      totalPages: "",
+      items: []
     };
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     this.getAll();
   }
 
-  getAll = () => {
-    getList().then(data => {
-      this.setState({ result: [...data.recordset] }, () =>
-        console.log(this.state.result)
-      );
+  // Handler Get from axios
+  getAll = async () => {
+    const res = await getList();
+    this.setState({ result: [...res.data.recordset] });
+    this.setState({
+      totalPages: this.state.result.length / this.state.itemperPage
+    });
+
+    this.setState({
+      items: this.state.result.slice(
+        (this.state.page - 1) * this.state.itemperPage,
+        (this.state.page - 1) * this.state.itemperPage + this.state.itemperPage
+      )
     });
   };
 
+  // Handler Add from axios
   onSubmit = event => {
     event.preventDefault();
     this.closeModal();
@@ -48,26 +56,26 @@ class Todo extends Component {
           cause: this.state.field3
         }
       },
-      () => {
-        addList(this.state.setField)
-          .then(res => console.log(res))
-          .then(() => this.getAll());
-        console.log(this.state.setField);
+      async () => {
+        const res = await addList(this.state.setField);
+        console.log(res);
       }
     );
   };
 
+  // Handler Update from axios
   onUpdate = event => {
     event.preventDefault();
     console.log("UPDATE");
   };
 
-  onDelete = id => {
-    deleteList(id)
-      .then(data => console.log(data))
-      .then(() => this.getAll());
+  // Handler Delete from axios
+  onDelete = async id => {
+    await deleteList(id);
+    await this.getAll();
   };
 
+  // Comfirm Delete Modal
   openConfirm = (event, data) => {
     event.preventDefault();
     this.setState({ isopenConfirm: true });
@@ -83,6 +91,7 @@ class Todo extends Component {
     this.setState({ isopenConfirm: false });
   };
 
+  // Handler open Modal Edit , Create
   openModal = () => {
     this.setState({ isopenModal: true });
     this.setState({ result: [] });
@@ -93,6 +102,7 @@ class Todo extends Component {
     this.setState({ isopenModal: false }, () => this.getAll());
   };
 
+  // Handler OnChangeCreate
   onChangeCreate = event => {
     if (event.target.name === "Field1") {
       this.setState({ field1: event.target.value });
@@ -105,8 +115,9 @@ class Todo extends Component {
     }
   };
 
+  // Handler OnChangeEdit
   onChangeEdit = (event, index) => {
-    const updateChange = [...this.state.result];
+    const updateChange = [...this.state.items];
     const updateChangeElement = { ...updateChange[index] };
     if (event.target.name === "Field1") {
       updateChangeElement.Block = event.target.value;
@@ -120,11 +131,26 @@ class Todo extends Component {
 
     updateChange[index] = updateChangeElement;
 
-    this.setState({ result: updateChange });
+    this.setState({ items: updateChange });
+  };
+
+  // HandlerPagination
+  onHandlerPage = (event, activePage) => {
+    event.preventDefault();
+    const data = [...this.state.result];
+    this.setState({ page: activePage.activePage }, () => {
+      this.setState({
+        items: data.slice(
+          (this.state.page - 1) * this.state.itemperPage,
+          (this.state.page - 1) * this.state.itemperPage +
+            this.state.itemperPage
+        )
+      });
+    });
   };
 
   render() {
-    const { result, field1, field2, field3 } = this.state;
+    const { items, field1, field2, field3 } = this.state;
     const { isopenModal, isopenConfirm } = this.state;
     return (
       <div>
@@ -136,19 +162,19 @@ class Todo extends Component {
             <br />
           </h2>
           <hr />
-          <Modal
-            title="Create BRT"
-            Field1={field1}
-            Field2={field2}
-            Field3={field3}
-            change={this.onChangeCreate}
-            submit={this.onSubmit}
-            onOpen={this.openModal}
-            onClose={this.closeModal}
-            open={isopenModal}
-          />
-          <br />
-          <br />
+          <div className="CreateButton">
+            <Modal
+              title="Create BRT"
+              Field1={field1}
+              Field2={field2}
+              Field3={field3}
+              change={this.onChangeCreate}
+              submit={this.onSubmit}
+              onOpen={this.openModal}
+              onClose={this.closeModal}
+              open={isopenModal}
+            />
+          </div>
           <table className="ui striped table">
             <thead>
               <tr>
@@ -160,7 +186,7 @@ class Todo extends Component {
               </tr>
             </thead>
             <tbody>
-              {result.map((values, index) => (
+              {items.map((values, index) => (
                 <tr key={index}>
                   <td key={index + "No"}>{values.No}</td>
                   <td key={index + "Block"}>{values.Block}</td>
@@ -190,6 +216,15 @@ class Todo extends Component {
             open={isopenConfirm}
             onCancel={this.closeConfirm}
             onConfirm={this.onConfirm}
+          />
+          <div className="showEntries">
+            Show 1 to {this.state.itemperPage} of {this.state.result.length}{" "}
+            entries
+          </div>
+          <Pagination
+            totalPages={Math.ceil(this.state.totalPages)}
+            activePage={this.state.page}
+            onPageChange={this.onHandlerPage}
           />
         </div>
       </div>

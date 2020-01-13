@@ -4,6 +4,7 @@ import "./index.css";
 import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 import axios from "axios";
+import { BrowserRouter } from "react-router-dom";
 
 axios.defaults.baseURL = "http://localhost:5000";
 axios.defaults.headers.common["Authorization"] = "AUTH TOKEN";
@@ -31,7 +32,15 @@ axios.interceptors.response.use(
   }
 );
 
-ReactDOM.render(<App />, document.getElementById("root"));
+const RouterApp = () => {
+  return (
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
+  );
+};
+
+ReactDOM.render(<RouterApp />, document.getElementById("root"));
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
