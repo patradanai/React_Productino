@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import { Container } from "semantic-ui-react";
 import socketIOClient from "socket.io-client";
-import { Bar } from "react-chartjs-2";
+import Bar from "../../components/Chart/Bar/Bar";
 
 let socketio;
 class Monitor extends Component {
@@ -132,13 +132,31 @@ class Monitor extends Component {
             backgroundColor: "rgba(255, 0, 255, 0.3)" // yellow
           }
         ]
-      }
+      },
+      optionBarStack: {
+        scales: {
+          yAxes: [{ stacked: true }],
+          xAxes: [{ stacked: true }]
+        }
+      },
+      Productivity: [
+        { NMPSC401: { Input: "", Output: "" } },
+        { NMPSC402: { Input: "", Output: "" } },
+        { NMPSC403: { Input: "", Output: "" } },
+        { NMPSC404: { Input: "", Output: "" } },
+        { NMPSC405: { Input: "", Output: "" } },
+        { NMPSC406: { Input: "", Output: "" } },
+        { NMPSC407: { Input: "", Output: "" } },
+        { NMPSC408: { Input: "", Output: "" } },
+        { NMPSC409: { Input: "", Output: "" } }
+      ]
     };
+    this.refChart = null;
   }
 
   response = data => {
-    let barchart = this.chartReference.chartInstance;
     const updateChart = { ...this.state.chartData };
+    const updateProdc = { ...this.state.Productivity };
     this.state.chartData.labels.filter((label, index) => {
       if (data[0].Machine === label) {
         updateChart.datasets[0].data[index] = data[4].SU;
@@ -163,11 +181,24 @@ class Monitor extends Component {
         updateChart.datasets[19].data[index] = data[23].NP;
         updateChart.datasets[20].data[index] = data[24].Unknowns;
         updateChart.datasets[21].data[index] = data[25].ShortStop;
+
+        updateProdc[index].input = data[1].Input;
+        updateProdc[index].Output = data[2].Output;
+        // console.log((updateProdc[index].input = data[1].Input));
+        // console.log((updateProdc[index].Output = data[2].Output));
       }
     });
 
     this.setState({ chartData: updateChart });
-    barchart.update();
+    this.setState({ Productivity: updateProdc });
+
+    // Update Chart by Ref
+    this.refChart.update();
+  };
+
+  // CallBack Ref Function
+  refCallBack = element => {
+    this.refChart = element.chartInstance;
   };
 
   componentDidMount() {
@@ -183,17 +214,12 @@ class Monitor extends Component {
   render() {
     return (
       <Container>
+        <h1>{this.state.Productivity[0].input}</h1>
+        <h1>{this.state.Productivity[0].Output}</h1>
         <Bar
-          ref={reference => {
-            this.chartReference = reference;
-          }}
-          data={this.state.chartData}
-          options={{
-            scales: {
-              yAxes: [{ stacked: true }],
-              xAxes: [{ stacked: true }]
-            }
-          }}
+          reference={this.refCallBack}
+          values={this.state.chartData}
+          options={this.state.optionBarStack}
         />
       </Container>
     );
