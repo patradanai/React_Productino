@@ -1,7 +1,8 @@
 import React, { Component } from "react";
-import { Container } from "semantic-ui-react";
+import { Container, Table } from "semantic-ui-react";
 import socketIOClient from "socket.io-client";
 import Bar from "../../components/Chart/Bar/Bar";
+import LiveTable from "../../components/Live/Monitor";
 
 let socketio;
 class Monitor extends Component {
@@ -149,7 +150,9 @@ class Monitor extends Component {
         { NMPSC407: { Input: "", Output: "" } },
         { NMPSC408: { Input: "", Output: "" } },
         { NMPSC409: { Input: "", Output: "" } }
-      ]
+      ],
+      Status: ["", "", "", "", "", "", "", "", ""],
+      curtime: ""
     };
     this.refChart = null;
   }
@@ -193,7 +196,7 @@ class Monitor extends Component {
     this.setState({ Productivity: updateProdc });
 
     // Update Chart by Ref
-    this.refChart.update();
+    // this.refChart.update();
   };
 
   // CallBack Ref Function
@@ -202,25 +205,105 @@ class Monitor extends Component {
   };
 
   componentDidMount() {
-    socketio = socketIOClient("http://localhost:4001");
-    socketio.on("/Losscode", this.response);
+    socketio = socketIOClient("http://localhost:4001", {
+      jsonp: false,
+      transports: ["websocket"]
+    });
+    socketio.on("/LossCode", this.response);
+
+    socketio.on("/Status", data => {
+      this.state.chartData.labels.filter((label, index) => {
+        if (data.Machine === label) {
+          const updateStatus = [...this.state.Status];
+          updateStatus[index] = data.Status;
+          this.setState({ Status: updateStatus });
+        }
+      });
+    });
+    setInterval(() => {
+      this.setState({ curtime: new Date().toLocaleTimeString() });
+    });
   }
 
   componentWillUnmount() {
-    socketio.off("/Losscode");
+    socketio.off();
     socketio.disconnect();
   }
 
   render() {
     return (
       <Container>
-        <h1>{this.state.Productivity[0].input}</h1>
-        <h1>{this.state.Productivity[0].Output}</h1>
-        <Bar
+        <br />
+        <h1>{this.state.curtime}</h1>
+        <br />
+        <Table celled>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>Machine</Table.HeaderCell>
+              <Table.HeaderCell>Status</Table.HeaderCell>
+              <Table.HeaderCell>Target</Table.HeaderCell>
+              <Table.HeaderCell>Result</Table.HeaderCell>
+              <Table.HeaderCell>Diff</Table.HeaderCell>
+              <Table.HeaderCell>LossCode</Table.HeaderCell>
+              <Table.HeaderCell>Elasp Time</Table.HeaderCell>
+              <Table.HeaderCell>Details</Table.HeaderCell>
+              <Table.HeaderCell>Operator</Table.HeaderCell>
+              <Table.HeaderCell>Maintance</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            <LiveTable
+              Name="NMPS-C401"
+              Status={this.state.Status[0]}
+              Result={this.state.Productivity[0].Output}
+            />
+            <LiveTable
+              Name="NMPS-C402"
+              Status={this.state.Status[1]}
+              Result={this.state.Productivity[1].Output}
+            />
+            <LiveTable
+              Name="NMPS-C403"
+              Status={this.state.Status[2]}
+              Result={this.state.Productivity[2].Output}
+            />
+            <LiveTable
+              Name="NMPS-C404"
+              Status={this.state.Status[3]}
+              Result={this.state.Productivity[3].Output}
+            />
+            <LiveTable
+              Name="NMPS-C405"
+              Status={this.state.Status[4]}
+              Result={this.state.Productivity[4].Output}
+            />
+            <LiveTable
+              Name="NMPS-C406"
+              Status={this.state.Status[5]}
+              Result={this.state.Productivity[5].Output}
+            />
+            <LiveTable
+              Name="NMPS-C407"
+              Status={this.state.Status[6]}
+              Result={this.state.Productivity[6].Output}
+            />
+            <LiveTable
+              Name="NMPS-C408"
+              Status={this.state.Status[7]}
+              Result={this.state.Productivity[7].Output}
+            />
+            <LiveTable
+              Name="NMPS-C409"
+              Status={this.state.Status[8]}
+              Result={this.state.Productivity[8].Output}
+            />
+          </Table.Body>
+        </Table>
+        {/* <Bar
           reference={this.refCallBack}
           values={this.state.chartData}
           options={this.state.optionBarStack}
-        />
+        /> */}
       </Container>
     );
   }
