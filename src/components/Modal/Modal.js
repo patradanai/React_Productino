@@ -8,17 +8,6 @@ export const BrtContext = React.createContext({
 });
 
 const ModalExampleCloseIcon = props => {
-  const changeHandler = event => {
-    if (event.target.name === "Field1") {
-      this.setState({ field1: event.target.value });
-    }
-    if (event.target.name === "Field2") {
-      this.setState({ field2: event.target.value });
-    }
-    if (event.target.name === "Field3") {
-      this.setState({ field3: event.target.value });
-    }
-  };
   return (
     <BrtContext.Provider value={{ field1: "", field2: "", field3: "" }}>
       <Modal
