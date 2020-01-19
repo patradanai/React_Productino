@@ -5,6 +5,18 @@ import App from "./App";
 import * as serviceWorker from "./serviceWorker";
 import axios from "axios";
 import { BrowserRouter } from "react-router-dom";
+import { createStore, applyMiddleware, compose } from "redux";
+import thunk from "redux-thunk";
+import logger from "redux-logger";
+import { Provider } from "react-redux";
+import Reducers from "../src/store/Reducers/reducers";
+import SocketMiddleware from "../src/socket/SocketMiddleware";
+
+const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
+const store = createStore(
+  Reducers,
+  composeEnhancers(applyMiddleware(thunk, logger, SocketMiddleware))
+);
 
 axios.defaults.baseURL = "http://localhost:5000";
 axios.defaults.headers.common["Authorization"] = "AUTH TOKEN";
@@ -34,9 +46,11 @@ axios.interceptors.response.use(
 
 const RouterApp = () => {
   return (
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
+    <Provider store={store}>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </Provider>
   );
 };
 
