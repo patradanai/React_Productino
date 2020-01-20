@@ -18,6 +18,8 @@ const Live = props => {
       </Table.Cell>
       <Table.Cell className="">{props.Target}</Table.Cell>
       <Table.Cell className="">{props.Result}</Table.Cell>
+      <Table.Cell className="">{props.Good}</Table.Cell>
+      <Table.Cell className="">{props.NG}</Table.Cell>
       <Table.Cell
         className={
           props.Diff <= 0 ? "negative" : props.Diff > 0 ? "positive" : ""

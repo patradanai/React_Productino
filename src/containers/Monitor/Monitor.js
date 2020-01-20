@@ -18,16 +18,11 @@ class Monitor extends Component {
         "NMPSC-407",
         "NMPSC-408",
         "NMPSC-409"
-      ]
+      ],
+      Target: 0,
+      Output: 0,
+      Ratio: 0
     };
-  }
-
-  componentDidMount() {
-    this.props.ws_connect();
-  }
-
-  componentWillUnmount() {
-    this.props.ws_disconnect();
   }
 
   Result = (Good, NG) => {
@@ -35,7 +30,7 @@ class Monitor extends Component {
     if (sum >= 0) {
       return sum;
     } else {
-      return;
+      return 0;
     }
   };
 
@@ -44,19 +39,39 @@ class Monitor extends Component {
     if (target >= 0) {
       return Math.ceil(target * 5 * 0.63);
     } else {
-      return;
+      return 0;
     }
   };
 
   diff = (input, output) => {
     const diff = parseInt(output) - parseInt(input);
     if (!isNaN(diff)) {
-      console.log(diff);
       return diff;
     } else {
       return;
     }
   };
+
+  componentDidMount() {
+    this.props.ws_connect();
+
+    setInterval(() => {
+      let count = 0;
+      let Result = 0;
+      for (let i = 0; i < this.state.Machine.length; i++) {
+        count += this.Target(this.props.Status[i].Target);
+        Result += this.Result(
+          this.props.Status[i].Good,
+          this.props.Status[i].NG
+        );
+      }
+      this.setState({ Target: count });
+    }, 1000);
+  }
+
+  componentWillUnmount() {
+    this.props.ws_disconnect();
+  }
 
   render() {
     const { Status } = this.props;
@@ -66,12 +81,12 @@ class Monitor extends Component {
         <br />
         <Statistic.Group widths="three">
           <Statistic>
-            <Statistic.Value>22</Statistic.Value>
-            <Statistic.Label>Faves</Statistic.Label>
+            <Statistic.Value>{this.state.Target}</Statistic.Value>
+            <Statistic.Label>Target</Statistic.Label>
           </Statistic>
           <Statistic>
-            <Statistic.Value>31,200</Statistic.Value>
-            <Statistic.Label>Views</Statistic.Label>
+            <Statistic.Value>{this.state.Output}</Statistic.Value>
+            <Statistic.Label>Production</Statistic.Label>
           </Statistic>
           <Statistic>
             <Statistic.Value>22</Statistic.Value>
@@ -84,6 +99,8 @@ class Monitor extends Component {
               <Table.HeaderCell>Machine</Table.HeaderCell>
               <Table.HeaderCell>Status</Table.HeaderCell>
               <Table.HeaderCell>Target</Table.HeaderCell>
+              <Table.HeaderCell>Good</Table.HeaderCell>
+              <Table.HeaderCell>NG</Table.HeaderCell>
               <Table.HeaderCell>Result</Table.HeaderCell>
               <Table.HeaderCell>Diff</Table.HeaderCell>
               <Table.HeaderCell>LossCode</Table.HeaderCell>
@@ -108,6 +125,8 @@ class Monitor extends Component {
                   }
                   Target={this.Target(Status[index].Target)}
                   Result={this.Result(Status[index].Good, Status[index].NG)}
+                  Good={Status[index].Good}
+                  NG={Status[index].NG}
                   Diff={this.diff(
                     this.Target(Status[index].Target),
                     this.Result(Status[index].Good, Status[index].NG)

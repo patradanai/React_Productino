@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 
 const Production = () => {
+  useEffect(() => {});
   return (
     <div>
       <h1>Production</h1>
