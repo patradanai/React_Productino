@@ -30,3 +30,22 @@ export const ws_onMessage = data => {
     msgPacket: data
   };
 };
+
+export const ws_onStatus = () => {
+  return {
+    type: actiontypes.MQTT_ONSTATUS
+  };
+};
+
+export const ws_onProduction = () => {
+  return {
+    type: actiontypes.MQTT_ONPRODUCTION
+  };
+};
+
+export const ws_onMessageProduction = data => {
+  return {
+    type: actiontypes.MQTT_ONMESSAGEPRODUCTION,
+    msgPacket: data
+  };
+};
