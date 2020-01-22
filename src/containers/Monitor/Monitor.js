@@ -2,7 +2,12 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { Container, Table, Statistic, Header } from "semantic-ui-react";
 import LiveTable from "../../components/Live/Monitor";
-import { ws_connect, ws_disconnect, ws_onStatus } from "../../store/Actions";
+import {
+  ws_connect,
+  ws_disconnect,
+  ws_onStatus,
+  ws_disconnected
+} from "../../store/Actions";
 
 class Monitor extends Component {
   constructor(props) {
@@ -24,6 +29,8 @@ class Monitor extends Component {
       Ratio: 0,
       diff: 0
     };
+    this._unMount = false;
+    this.setTime = null;
   }
 
   Result = (Good, NG) => {
@@ -54,35 +61,41 @@ class Monitor extends Component {
   };
 
   componentDidMount() {
+    this._unMount = true;
     // Connect to MQTT
     this.props.ws_connect();
 
     // Subscribe Topic
     this.props.ws_Status();
 
-    setInterval(() => {
-      let count = 0;
-      let Result = 0;
-      let ratio = 0;
-      let diff = 0;
-      for (let i = 0; i < this.state.Machine.length; i++) {
-        count += this.Target(this.props.Status[i].Target);
-        Result += this.Result(
-          this.props.Status[i].Good,
-          this.props.Status[i].NG
-        );
-      }
-      ratio = Math.round((Result / count) * 100);
-      diff = Result - count;
-      this.setState({ Target: count });
-      this.setState({ Ratio: ratio });
-      this.setState({ Output: Result });
-      this.setState({ Diff: diff });
-    }, 1000);
+    if (this._unMount) {
+      this.setTime = setInterval(() => {
+        let count = 0;
+        let Result = 0;
+        let ratio = 0;
+        let diff = 0;
+        for (let i = 0; i < this.state.Machine.length; i++) {
+          count += this.Target(this.props.Status[i].Target);
+          Result += this.Result(
+            this.props.Status[i].Good,
+            this.props.Status[i].NG
+          );
+        }
+        ratio = Math.round((Result / count) * 100);
+        diff = Result - count;
+        this.setState({ Target: count });
+        this.setState({ Ratio: ratio });
+        this.setState({ Output: Result });
+        this.setState({ Diff: diff });
+      }, 1000);
+    }
   }
 
   componentWillUnmount() {
     this.props.ws_disconnect();
+    this.props.ws_disconnected();
+    clearInterval(this.setTime);
+    this._unMount = false;
   }
 
   render() {
@@ -179,6 +192,7 @@ const mapDispatchToProps = dispatch => {
   return {
     ws_connect: () => dispatch(ws_connect()),
     ws_disconnect: () => dispatch(ws_disconnect()),
+    ws_disconnected: () => dispatch(ws_disconnected()),
     ws_Status: () => dispatch(ws_onStatus())
   };
 };

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Container } from "semantic-ui-react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ws_connect,
@@ -35,11 +36,11 @@ const Production = () => {
     "C409"
   ];
   useEffect(() => {
-    if (!connected) {
+    setTimeout(() => {
       dispatch(ws_connect());
       dispatch(ws_connected());
       dispatch(ws_onProduction());
-    }
+    }, 2000);
     return () => {
       dispatch(ws_disconnect());
       dispatch(ws_disconnected());
@@ -48,7 +49,7 @@ const Production = () => {
   useEffect(() => {
     const setTime = setInterval(() => {
       updateChart();
-    }, 3000);
+    }, 5000);
     return () => {
       clearInterval(setTime);
     };
@@ -89,7 +90,7 @@ const Production = () => {
   };
 
   return (
-    <div>
+    <Container>
       <h1>Production</h1>
       <BarChart
         width={500}
@@ -130,7 +131,7 @@ const Production = () => {
         <Bar dataKey="Unknown" stackId="a" fill="#ff8c66" />
         <Bar dataKey="ShortStop" stackId="a" fill="#82ca9d" />
       </BarChart>
-    </div>
+    </Container>
   );
 };
 
